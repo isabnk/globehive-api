@@ -3,7 +3,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
-import postsRouter from "./routes/posts.js";   // <-- add this
 
 dotenv.config();
 
@@ -13,19 +12,32 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// Health & root
-app.get("/", (req, res) => {
-  res.send("Backend server is running ✅");
-});
-app.get("/health", (req, res) => {
-  res.json({ ok: true, time: new Date().toISOString() });
+// Root + health
+app.get("/", (_req, res) => res.send("Backend server is running ✅"));
+app.get("/health", (_req, res) =>
+  res.json({ ok: true, time: new Date().toISOString() })
+);
+
+// *** Inline /posts route (no imports, no chance to miss) ***
+app.get("/posts", (_req, res) => {
+  res.json([
+    {
+      id: 1,
+      title: "First post",
+      image: "https://picsum.photos/seed/1/900/500",
+      excerpt: "Hello from your real API."
+    },
+    {
+      id: 2,
+      title: "Second post",
+      image: "https://picsum.photos/seed/2/900/500",
+      excerpt: "Replace with DB data later."
+    }
+  ]);
 });
 
-// Demo posts API
-app.use("/posts", postsRouter);                // <-- mount it
-
-// Example DB endpoint (optional)
-app.get("/users", async (req, res) => {
+// (Optional) DB test endpoint
+app.get("/users", async (_req, res) => {
   try {
     const users = await prisma.user.findMany();
     res.json(users);
